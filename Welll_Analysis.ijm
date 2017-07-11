@@ -8,7 +8,7 @@ var nWells = 0; // number of wells detected
 var wellRadius;
 
 // Output all wells to a results table
-macro "Automatic Well Detection Action Tool - C059 O00gg L55b8 Lb85b L5b55" { // <- number?
+macro "Automatic Well Detection Action Tool - C059 O00gg L55b8 Lb85b L5b55" {
 
 	/* Run hough circle transform plugin (wiki: https://imagej.net/Hough_Circle_Transform) (test image = 500 circles approx.) */
 	run("Reduce Dimensionality...", "channels slices keep"); // remove t domain
