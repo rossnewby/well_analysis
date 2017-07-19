@@ -11,15 +11,11 @@ var wellRadius;
 macro "Automatic Well Detection Action Tool - C059 O00gg L55b8 Lb85b L5b55" {
 
 	/* Run hough circle transform plugin (wiki: https://imagej.net/Hough_Circle_Transform) (test image = 500 circles approx.) */
-	run("Reduce Dimensionality...", "channels slices keep"); // remove t domain
-	run("Delete Slice", "delete=channel"); // remove channels (trying to find more condensed way to do this)
-	run("Delete Slice", "delete=channel");
-	run("Next Slice [>]");
-	run("Delete Slice", "delete=channel");
-	
-	//run("Z Project...", "projection=[Average Intensity] all"); // remove z domain via z projection
-	//IJ.showStatus("Autofocusing...");
-	run("Autofocus Hyperstack"); // remove z domain via autofocus
+	Stack.setPosition(3, 1, 1);//call this first for consitencey
+	run("Reduce Dimensionality...", "slices keep"); //just use frame 1 to get the wells?
+	rename("Wells");
+	normalised_variance("Wells"); // remove z domain via autofocus
+	run("Duplicate...", "use");
 	
 	run("Find Edges")
 	setAutoThreshold("Default dark");
@@ -70,3 +66,43 @@ function discard_wells(){
 		//
 	}
 }
+
+function normalised_variance(image) {
+
+// Choose the most infocus slice
+
+	Stack.getDimensions(width, height, channels, slices, frames);
+	run("Clear Results");
+	run("Set Measurements...", "  mean redirect=None decimal=5");
+	run("Measure");
+	mean = getResult("Mean");
+	selectWindow("Results");
+	run("Close");
+	W = getWidth();
+	H = getHeight();
+	b = 0;
+	m = 0;
+	normVar = 0; // Set to 0 which is out of focus
+	for (l=1; l<=slices; l++){ 
+		selectWindow(image);
+		Stack.setSlice(l);
+
+		getRawStatistics(nPixels, mean);
+		W = getWidth();
+		H = getHeight();
+		b = 0;
+
+		for (j=0; j<H; j++) {
+   			for (i=0; i<W; i++) {
+      			p = getPixel(i,j);
+      			t = (p-mean)*(p-mean);
+      			b += t;
+      		}
+   		}
+
+		if ((b/(H*W*mean))>normVar) {normVar = (b/(H*W*mean)); m++;} else {normVar=normVar;}
+
+	}
+	Stack.setSlice(m);
+}
+
