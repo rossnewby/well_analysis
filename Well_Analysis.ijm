@@ -19,7 +19,7 @@ macro "Automatic Well Detection Action Tool - C059 O00gg L55b8 Lb85b L5b55" {
 	
 	//run("Z Project...", "projection=[Average Intensity] all"); // remove z domain via z projection
 	//IJ.showStatus("Autofocusing...");
-	run("Autofocus Hyperstack"); // remove z domain via autofocus
+	run("Autofocus_Hyperstack"); // remove z domain via autofocus
 	
 	run("Find Edges")
 	setAutoThreshold("Default dark");
