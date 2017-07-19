@@ -10,6 +10,9 @@ var wellRadius;
 // Output all wells to a results table
 macro "Automatic Well Detection Action Tool - C059 O00gg L55b8 Lb85b L5b55" {
 
+	//remove scale so can work in pixels
+	run("Set Scale...", "distance=0 known=0 pixel=1 unit=pixel");
+	
 	/* Run hough circle transform plugin (wiki: https://imagej.net/Hough_Circle_Transform) (test image = 500 circles approx.) */
 	Stack.setPosition(3, 1, 1);//call this first for consitencey
 	run("Reduce Dimensionality...", "slices keep"); //just use frame 1 to get the wells?
@@ -22,13 +25,28 @@ macro "Automatic Well Detection Action Tool - C059 O00gg L55b8 Lb85b L5b55" {
 	setThreshold(60, 255); // params work with test hyperstack (!)
 	setOption("BlackBackground", true);
 	run("Convert to Mask"); // Displays an image after execution (?)
-	run("Hough Circle Transform","minRadius=20, maxRadius=50, inc=1, minCircles=1, maxCircles=1000, threshold=0.6, resolution=100, ratio=1.0, bandwidth=10, local_radius=10,  reduce results_table"); // add 'show_mask to display image with circles
+	run("Hough Circle Transform","minRadius=20, maxRadius=50, inc=1, minCircles=1, maxCircles=1000, threshold=0.6, resolution=100, ratio=1.0, bandwidth=10, local_radius=10,  reduce results_table show_mask"); // add 'show_mask to display image with circles
 
-	// saveAs("Results", "C:\\Users\\Ross\\Documents\\University\\Intern - Cell Analysis\\results.csv");
-	close(); // close un-necessary windows
-	close();
+	wait(1000);
+	
+	//get the mean size of the circle
+	total_radius=0;
+	for (a=0; a<nResults(); a++) {
+   		total_radius=total_radius+getResult("Radius (pixels)",a);
+		}
+    mean_radius=total_radius/nResults;
+    diameter = mean_radius*2;
+    print(mean_radius);
+	
 
-	// nWells - nResults;
+	//loop through the results and define an ROI for each result
+	for (b=0; b<nResults(); b++) {
+		x = (getResult("X (pixels)",b)-(diameter/2));
+		y = (getResult("Y (pixels)",b)-(diameter/2));
+		makeOval(x, y, diameter, diameter);
+		roiManager("Add");
+	}
+	
 }
 
 // Delete empty wells from an result table
